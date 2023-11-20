@@ -1,5 +1,4 @@
 ---
-layout: post
 ---
 
 # This is a heading ig

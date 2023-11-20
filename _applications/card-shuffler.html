@@ -1,0 +1,100 @@
+---
+title: card shuffler
+---
+<div id="app"></div>
+<script>
+document.addEventListener('DOMContentLoaded', (e => {
+    const suits = [ 'fire', 'air', 'earth', 'water', 'aether', 'arcana'];
+    const ranks = [ null, 'ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'initiate', 'student', 'master'];
+    const arcana = [ 'The Lost Twin', 'The Pilgrim', 'Abundance' ,'The Stronghold', 'The Mariner', 'Loss', 'The Mirror', 'The Wild Hunt', 'Balance', 'The Messenger', 'The General', 'Control', 'The Many']
+    let initDeck = [];
+    let deckSize = (suits.length - 1) * (ranks.length -1) + arcana.length;
+    let deckIndex = 0;
+    let arcanaIndex = 0;
+    const app = document.getElementById('app');
+    for(let i = 0; i < suits.length - 1; i++){
+       for(let j = 1; j < ranks.length; j++){
+           initDeck[deckIndex] = `${ranks[j]} of ${suits[i]}`;
+           deckIndex++;
+       }
+    }
+    for(let i = 0; i < arcana.length; i++){
+        initDeck[deckIndex] = arcana[i];
+        deckIndex++
+    }
+    if(deckIndex != deckSize){
+        throw new Error('Deck initialized incorrectly');
+    }
+    let deck = getShuffledDeck(initDeck);
+    let displayArea = document.createElement('ol');
+    let drawnCards = DisplayArrayAsList([], displayArea);
+    let shuffleButton = document.createElement('button');
+    shuffleButton.addEventListener('click', () => {
+        deck = getShuffledDeck(initDeck);
+        drawnCards.splice(0);
+    })
+    shuffleButton.innerText = 'Shuffle'
+    let drawButton = document.createElement('button');
+    drawButton.addEventListener('click', () => drawnCards.push(deck.pop()));
+    drawButton.innerText = 'Draw'
+    app.append(displayArea, shuffleButton, drawButton);
+    console.log(deck);
+    console.log(displayArea);
+}));
+
+function getRandomInt(max){
+    return Math.floor(Math.random() * max);
+}
+function getShuffledDeck(initDeck){
+    let fromDeck = Array.from(initDeck);
+    let toDeck = [];
+    let toIndex = 0;
+    for(let i = fromDeck.length; i > 0; i--){
+        let fromIndex = getRandomInt(i);
+        let value = fromDeck.splice(fromIndex, 1)[0];
+        toDeck[toIndex] = value;
+        toIndex++;
+    }
+    return toDeck;
+}
+function DisplayArrayAsList(array, element){
+    return new Proxy(array, {
+        set(object, property, value){
+            let index = parseInt(property);
+            if(isNaN(index)){
+                return Reflect.set(...arguments);
+            } else if(element.children.length <= index){
+                let listItem = document.createElement('li');
+                listItem.innerText = value;
+                element.append(listItem);
+            } else {
+                element.children[index].innerText = value;
+            }
+            return Reflect.set(...arguments);
+        },
+        deleteProperty(object, property){
+            let index = parseInt(property);
+            if(isNaN(index)){
+                return Reflect.set(...arguments);
+            }
+            element.children[index].remove();
+            return Reflect.deleteProperty(...arguments);
+        }
+    })
+}
+function ArrayLogger(arr){
+    return new Proxy(arr, {
+        set(object, property, value){
+            console.log('obj:\t', object);
+            console.log('prop:\t', property);
+            console.log('val:\t', value);
+            return Reflect.set(...arguments);
+        },
+        deleteProperty(object, property){
+            console.log('obj:\t', object);
+            console.log('prop:\t', property);
+            return Reflect.deleteProperty(...arguments);
+        }
+    });
+}
+</script>
